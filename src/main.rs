@@ -1,10 +1,14 @@
 mod fuel_power;
 mod iron_refinement;
+mod items;
+mod machines;
 mod recipes;
 mod recycling;
 
 use clap::{Parser, Subcommand};
 use inquire::{CustomType, Select};
+use items::ItemName;
+use recipes::{Recipe, get_recipes};
 
 #[derive(Parser)]
 #[command(name = "satisfactories")]
