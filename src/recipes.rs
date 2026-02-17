@@ -160,20 +160,20 @@ pub fn get_recipes(filter: RecipeFilter) -> Vec<Recipe> {
     ALL_RECIPES
         .iter()
         .filter(|r| {
-            if let Some(m) = filter.machine {
-                if r.machine != m {
-                    return false;
-                }
+            if let Some(m) = filter.machine
+                && r.machine != m
+            {
+                return false;
             }
-            if let Some(item) = filter.input_item {
-                if !r.inputs.iter().any(|i| i.item == item) {
-                    return false;
-                }
+            if let Some(item) = filter.input_item
+                && !r.inputs.iter().any(|i| i.item.name == item)
+            {
+                return false;
             }
-            if let Some(item) = filter.output_item {
-                if !r.outputs.iter().any(|i| i.item == item) {
-                    return false;
-                }
+            if let Some(item) = filter.output_item
+                && !r.outputs.iter().any(|i| i.item.name == item)
+            {
+                return false;
             }
             true
         })
