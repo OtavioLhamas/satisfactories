@@ -17,18 +17,23 @@ struct Cli {
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
     /// Iron Refinement Center
+    #[command(visible_alias = "irc")]
     IronRefinementCenter {
-        /// Target input rate in items per minute
+        /// Production goal (Iron Ingots/min)
         #[arg(short, long)]
         input_rate: Option<f32>,
     },
+
     /// Recycling Facility
+    #[command(visible_alias = "rec")]
     RecyclingFacility {
         /// Target input rate in items per minute
         #[arg(short, long)]
         input_rate: Option<f32>,
     },
+
     /// Fuel Power Plant
+    #[command(visible_alias = "fuel")]
     FuelPowerPlant {
         /// Target input rate in items per minute
         #[arg(short, long)]
