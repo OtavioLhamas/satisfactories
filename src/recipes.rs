@@ -76,7 +76,7 @@ recipe!(
     Smelter,
     inputs: [items::ITEM_IRON_ORE, 1.0],
     outputs: [items::ITEM_IRON_INGOT, 1.0],
-    alternate: true,
+    alternate: false,
 );
 
 recipe!(
@@ -179,4 +179,114 @@ pub fn get_recipes(filter: RecipeFilter) -> Vec<Recipe> {
         })
         .copied()
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn base_rate_formula_scales_with_amount() {
+        let recipe = RECIPE_IRON_INGOT;
+        let item = RecipeItem {
+            item: items::ITEM_IRON_ORE,
+            amount: 1.0,
+        };
+        let rate = recipe.base_rate(item);
+
+        let item2 = RecipeItem {
+            item: items::ITEM_IRON_ORE,
+            amount: 2.0,
+        };
+        let rate2 = recipe.base_rate(item2);
+
+        assert_eq!(rate2, rate * 2.0);
+    }
+
+    #[test]
+    fn base_rate_formula_scales_inversely_with_duration() {
+        let recipe = RECIPE_IRON_INGOT;
+        let item = RecipeItem {
+            item: items::ITEM_IRON_ORE,
+            amount: 1.0,
+        };
+        let rate = recipe.base_rate(item);
+
+        let recipe2 = RECIPE_PURE_IRON_INGOT;
+        let item2 = RecipeItem {
+            item: items::ITEM_IRON_ORE,
+            amount: 1.0,
+        };
+        let rate2 = recipe2.base_rate(item2);
+
+        assert_eq!(rate, rate2 * (12.0 / 2.0));
+    }
+
+    #[test]
+    fn clocked_rate_scales_linearly_with_clock_speed() {
+        let recipe = RECIPE_IRON_INGOT;
+        let item = RecipeItem {
+            item: items::ITEM_IRON_ORE,
+            amount: 1.0,
+        };
+        let base = recipe.base_rate(item);
+
+        assert_eq!(recipe.clocked_rate(item, 50.0), base * 0.5);
+        assert_eq!(recipe.clocked_rate(item, 100.0), base * 1.0);
+        assert_eq!(recipe.clocked_rate(item, 150.0), base * 1.5);
+        assert_eq!(recipe.clocked_rate(item, 200.0), base * 2.0);
+        assert_eq!(recipe.clocked_rate(item, 250.0), base * 2.5);
+    }
+
+    #[test]
+    fn clocked_rate_at_100_percent_equals_base_rate() {
+        let recipe = RECIPE_IRON_INGOT;
+        let input = recipe.inputs[0];
+        assert_eq!(recipe.clocked_rate(input, 100.0), recipe.base_rate(input));
+    }
+
+    #[test]
+    fn get_recipes_returns_all_when_no_filter() {
+        let recipes = get_recipes(RecipeFilter::default());
+        assert_eq!(recipes.len(), ALL_RECIPES.len());
+    }
+
+    #[test]
+    fn get_recipes_filters_by_machine() {
+        let recipes = get_recipes(RecipeFilter {
+            machine: Some(machines::Machine::Smelter),
+            ..Default::default()
+        });
+        assert!(
+            recipes
+                .iter()
+                .all(|r| r.machine == machines::Machine::Smelter)
+        );
+    }
+
+    #[test]
+    fn get_recipes_filters_by_output_item() {
+        let recipes = get_recipes(RecipeFilter {
+            output_item: Some(items::ItemName::IronIngot),
+            ..Default::default()
+        });
+        assert!(recipes.iter().all(|r| {
+            r.outputs
+                .iter()
+                .any(|o| o.item.name == items::ItemName::IronIngot)
+        }));
+    }
+
+    #[test]
+    fn get_recipes_filters_by_input_item() {
+        let recipes = get_recipes(RecipeFilter {
+            input_item: Some(items::ItemName::IronOre),
+            ..Default::default()
+        });
+        assert!(recipes.iter().all(|r| {
+            r.inputs
+                .iter()
+                .any(|i| i.item.name == items::ItemName::IronOre)
+        }));
+    }
 }

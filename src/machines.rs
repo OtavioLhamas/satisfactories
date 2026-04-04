@@ -39,3 +39,22 @@ define_machine! {
     Refinery => "Refinery", 30.0,
     Blender => "Blender", 75.0,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clocked_power_at_100_percent_equals_base() {
+        let machine = Machine::Smelter;
+        assert_eq!(machine.clocked_power(100.0), machine.base_power());
+    }
+
+    #[test]
+    fn clocked_power_increases_with_clock_speed() {
+        let machine = Machine::Refinery;
+        let power_100 = machine.clocked_power(100.0);
+        let power_150 = machine.clocked_power(150.0);
+        assert!(power_150 > power_100);
+    }
+}
