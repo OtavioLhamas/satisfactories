@@ -4,6 +4,7 @@ mod items;
 mod machines;
 mod recipes;
 mod recycling;
+mod tui;
 
 use clap::{Parser, Subcommand};
 use inquire::{CustomType, Select};
@@ -16,6 +17,10 @@ use recipes::{Recipe, get_recipes};
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
+
+    /// Run in CLI mode instead of TUI
+    #[arg(long, default_value_t = false)]
+    cli: bool,
 
     /// Minimum clock speed (e.g. 50 for 50%)
     #[arg(long, default_value_t = 50.0, global = true)]
@@ -86,6 +91,14 @@ impl std::fmt::Display for Commands {
 fn main() {
     let cli = Cli::parse();
 
+    if cli.cli {
+        run_cli(cli);
+    } else {
+        tui::run_tui();
+    }
+}
+
+fn run_cli(cli: Cli) {
     let command = match cli.command {
         Some(cmd) => cmd,
         None => {
@@ -218,5 +231,8 @@ fn main() {
 fn select_recipe(recipes: &[Recipe]) -> Recipe {
     let options: Vec<String> = recipes.iter().map(|r| r.name.to_string()).collect();
     let answer = Select::new("Select a recipe:", options).prompt().unwrap();
-    *recipes.iter().find(|r| r.name.to_string() == answer).unwrap()
+    *recipes
+        .iter()
+        .find(|r| r.name.to_string() == answer)
+        .unwrap()
 }
